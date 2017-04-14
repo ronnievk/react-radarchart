@@ -1,5 +1,5 @@
 import React, {PropTypes} from 'react';
-import * as d3 from 'd3';
+import {scaleLinear} from "d3-scale";
 
 import AllAxes from './AllAxes.js';
 import RadarArea from './RadarArea.js';
@@ -15,7 +15,7 @@ function xyScale(scale, fraction, origin = { x: 0, y: 0} ) {
 }
 
 function defaultScale(radius) {
-    return d3.scaleLinear()
+    return scaleLinear()
         .domain([0, 100])
         .range([0, radius]);
 }
