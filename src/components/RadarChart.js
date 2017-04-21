@@ -14,11 +14,23 @@ function xyScale(scale, fraction, origin = { x: 0, y: 0} ) {
     return result;
 }
 
-function defaultScale(radius) {
+function defaultScale(radius, domain) {
     return scaleLinear()
-        .domain([0, 100])
+        .domain(domain)
         .range([0, radius]);
 }
+
+const sizeConfig = {
+    defaultRadius: 125,
+    minRadius: 50,
+    maxRadius: 200 //only for 'responsive mode'
+} ;
+
+// props.options will be merged with this default options:
+const defaultOptions = {
+    numberOfGridlines: 5,
+    margin: {top: 40, bottom: 40, left: 90, right: 90}
+}; 
 
 /** takes width, height and/or radius and calculates missing values on basis of margin-settings
  * calculate svg size from the given options, the possibilities are:
@@ -48,7 +60,7 @@ function calculateSize(options) {
         } else {
             options.radius = radiusH;
         }
-        options.radius = Math.max(radius, sizeConfig.minRadius);
+        options.radius = Math.max(options.radius, sizeConfig.minRadius);
     } 
     if (!options.radius && options.parentWidth) {
         //responsive mode, maximize width to parentWidth within min/max boundaries
@@ -84,32 +96,26 @@ const RadarChart = props => {
     const options = props.options;
     props.axes.forEach(function(axis, index) {
             const fraction = index/props.axes.length;
-            props.axes[index].scale = xyScale(defaultScale(options.radius), fraction);
-            props.axes[index].labelAnchor = (fraction == 0 || fraction == 0.5) ? 'middle' : fraction < 0.5 ? 'end' : 'start';
+            props.axes[index].scale = xyScale(defaultScale(options.radius, axis.domain), fraction);
+            props.axes[index].labelAnchor = (fraction === 0 || fraction === 0.5) ? 'middle' : fraction < 0.5 ? 'end' : 'start';
         });
     const translate = `translate(${options.margin.left+options.radius}, ${options.margin.top+options.radius})`;
+    if (props.data.loading) {
+        return <p>Loading...</p>;
+    }
+    if (props.data.error) {
+        return <p>{props.data.error.message}</p>;
+    }
     return <svg className="d3-chart radar-chart" transform={translate} width={options.width} height={options.height}>
         <AllAxes {...props} />
-        {props.data.map(d => 
+        {props.data.values.map((d,i) => 
             <RadarArea {...props} data={d} />
         )}
     </svg>
 };
 
-const sizeConfig = {
-    defaultRadius: 125,
-    minRadius: 50,
-    maxRadius: 200 //only for 'responsive mode'
-} ;
-
-// props.options will be merged with this default options:
-const defaultOptions = {
-    numberOfGridlines: 5,
-    margin: {top: 40, bottom: 40, left: 90, right: 90}
-}; 
-
 RadarChart.defaultProps = {
-    data: [],
+    data: { loading: true, error: null, values: []},
     options: defaultOptions
 };
 
@@ -119,7 +125,11 @@ RadarChart.propTypes = {
         label: PropTypes.string,
         domain: PropTypes.arrayOf(PropTypes.number).isRequired
     })).isRequired, 
-    data: PropTypes.array,
+    data: PropTypes.shape({
+        loading: PropTypes.boolean,
+        error: PropTypes.object,
+        values: PropTypes.array
+    }),
     options: PropTypes.shape({
         width: PropTypes.number,
         height: PropTypes.number,

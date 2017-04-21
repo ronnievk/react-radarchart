@@ -8,6 +8,7 @@ const polygonStyle = {
 
 const RadarArea = (props) => {
         const d = props.data;
+        //console.log(d);
         const dataValues = props.axes.map(axis => 
             d.hasOwnProperty(axis.dataKey) ? axis.scale(d[axis.dataKey]) : axis.scale(0));
         const points = dataValues.map(p => p.x+','+p.y).join(' ');
