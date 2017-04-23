@@ -106,11 +106,13 @@ const RadarChart = props => {
     if (props.data.error) {
         return <p>{props.data.error.message}</p>;
     }
-    return <svg className="d3-chart radar-chart" transform={translate} width={options.width} height={options.height}>
+    return <svg className="d3-chart radar-chart" width={options.width} height={options.height}>
+      <g transform={translate}>
         <AllAxes {...props} />
         {props.data.values.map((d,i) => 
             <RadarArea {...props} data={d} dataIndex={props.data.values.length - 1 - i} key={i} />
         )}
+      </g>
     </svg>
 };
 
